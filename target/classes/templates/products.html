@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Catalog - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <div>
+        <h1 style="font-size: 2.25rem; font-weight: 800;">Shop Catalog</h1>
+        <p style="color: var(--color-slate-500);">Discover our full lineup of tactical backpacks, tech & travel gear.</p>
+      </div>
+      <div style="color: var(--color-slate-500); font-weight: 600;">
+        Showing <span style="color: var(--color-slate-900);" th:text="${products.size()}">0</span> items
+      </div>
+    </div>
+
+    <div class="catalog-layout">
+      <!-- Filter Sidebar -->
+      <aside class="filter-sidebar">
+        <h3 class="filter-title"><i class="fa-solid fa-filter"></i> Filter Gear</h3>
+        
+        <form th:action="@{/products}" method="get">
+          <div class="filter-group">
+            <label class="filter-label">Keyword Search</label>
+            <input type="text" name="keyword" th:value="${keyword}" class="form-input" placeholder="Search product name...">
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Categories</label>
+            <ul class="filter-list">
+              <li class="filter-item">
+                <input type="radio" name="categoryId" id="cat_all" value="" th:checked="${categoryId == null}">
+                <label for="cat_all">All Categories</label>
+              </li>
+              <li th:each="cat : ${categories}" class="filter-item">
+                <input type="radio" name="categoryId" th:id="'cat_' + ${cat.categoryId}" th:value="${cat.categoryId}" th:checked="${categoryId == cat.categoryId}">
+                <label th:for="'cat_' + ${cat.categoryId}" th:text="${cat.name}">Category Name</label>
+              </li>
+            </ul>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Price Range (₹)</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="number" name="minPrice" th:value="${minPrice}" placeholder="Min" class="form-input" style="padding: 0.5rem;">
+              <span>-</span>
+              <input type="number" name="maxPrice" th:value="${maxPrice}" placeholder="Max" class="form-input" style="padding: 0.5rem;">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 1rem;">
+            Apply Filters
+          </button>
+          <a th:href="@{/products}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 0.5rem;">
+            Clear Filters
+          </a>
+        </form>
+      </aside>
+
+      <!-- Products Grid -->
+      <main>
+        <div th:if="${products.isEmpty()}" style="background-color: white; border-radius: var(--radius-xl); padding: 4rem; text-align: center; border: 1px solid var(--color-slate-200);">
+          <i class="fa-solid fa-box-open" style="font-size: 3rem; color: var(--color-slate-400); margin-bottom: 1rem;"></i>
+          <h2>No products found</h2>
+          <p style="color: var(--color-slate-500); margin-bottom: 1.5rem;">Try relaxing your search keywords or price filters.</p>
+          <a th:href="@{/products}" class="btn btn-primary">Reset Catalog</a>
+        </div>
+
+        <div class="product-grid" th:unless="${products.isEmpty()}">
+          <div th:each="prod : ${products}" class="product-card">
+            <div class="product-thumb">
+              <span th:if="${prod.isFeatured}" class="badge-featured">FEATURED</span>
+              <span th:if="${prod.discountPercentage > 0}" class="badge-discount" th:text="'-' + ${prod.discountPercentage} + '%'">-20%</span>
+              <img th:src="${prod.imageUrl}" th:alt="${prod.name}">
+            </div>
+            <div class="product-details">
+              <div class="product-category" th:text="${prod.category != null ? prod.category.name : 'GEAR'}">Category</div>
+              <a th:href="@{/products/{id}(id=${prod.productId})}">
+                <h3 class="product-title" th:text="${prod.name}">Product Title</h3>
+              </a>
+              <div class="rating-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star-half-stroke"></i>
+                <span class="rating-count" th:text="'(' + ${prod.reviewCount} + ')'">(12)</span>
+              </div>
+              <div class="product-bottom">
+                <div class="price-box">
+                  <span class="price-current" th:text="'₹' + ${#numbers.formatDecimal(prod.effectivePrice, 1, 2)}">₹9,999</span>
+                  <span th:if="${prod.discountPrice != null and prod.discountPrice < prod.price}" class="price-old" th:text="'₹' + ${#numbers.formatDecimal(prod.price, 1, 2)}">₹12,999</span>
+                </div>
+                <form th:action="@{/cart/add}" method="post">
+                  <input type="hidden" name="productId" th:value="${prod.productId}">
+                  <button type="submit" class="btn btn-sm btn-primary" title="Add to Cart">
+                    <i class="fa-solid fa-cart-plus"></i> Add
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

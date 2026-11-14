@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Reports - Knapsack Admin</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .admin-nav { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+    .admin-nav a { padding:0.5rem 1rem; border-radius:var(--radius-md); font-weight:600; font-size:0.875rem; color:var(--color-slate-600); background:var(--color-slate-100); transition:all var(--transition-fast); }
+    .admin-nav a:hover, .admin-nav a.active { background:var(--color-primary); color:white; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; margin-bottom:2.5rem; }
+    .kpi-card { background:white; border-radius:var(--radius-xl); padding:1.5rem; border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); display:flex; justify-content:space-between; align-items:center; }
+    .kpi-label { font-size:0.8rem; font-weight:700; color:var(--color-slate-500); text-transform:uppercase; margin-bottom:0.5rem; }
+    .kpi-value { font-size:2rem; font-weight:800; color:var(--color-slate-900); }
+    .kpi-icon { width:3.5rem; height:3.5rem; border-radius:var(--radius-xl); display:flex; align-items:center; justify-content:center; font-size:1.4rem; }
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2.5rem; }
+    .chart-card { background:white; border-radius:var(--radius-2xl); border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); padding:1.75rem; }
+    .chart-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; color:var(--color-slate-800); }
+    .progress-bar-wrap { margin-bottom:0.75rem; }
+    .progress-label { display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:0.3rem; }
+    .progress-bg { background:var(--color-slate-100); border-radius:var(--radius-full); height:0.6rem; overflow:hidden; }
+    .progress-fill { height:100%; border-radius:var(--radius-full); transition:width 0.8s ease; }
+    .revenue-highlight { background:linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:var(--radius-2xl); padding:2rem; color:white; margin-bottom:2.5rem; display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:center; }
+    .recent-orders-table { background:white; border-radius:var(--radius-2xl); border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); overflow:hidden; }
+    .metric-card { background:white; border-radius:var(--radius-xl); border:1px solid var(--color-slate-200); padding:1.25rem; }
+    .metric-row { display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px solid var(--color-slate-100); font-size:0.9rem; }
+    .metric-row:last-child { border-bottom:none; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+    <!-- Admin Navigation -->
+    <nav class="admin-nav">
+      <a th:href="@{/admin}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a th:href="@{/admin/products}"><i class="fa-solid fa-box"></i> Products</a>
+      <a th:href="@{/admin/categories}"><i class="fa-solid fa-tags"></i> Categories</a>
+      <a th:href="@{/admin/orders}"><i class="fa-solid fa-boxes-packing"></i> Orders</a>
+      <a th:href="@{/admin/users}"><i class="fa-solid fa-users"></i> Users</a>
+      <a th:href="@{/admin/reviews}"><i class="fa-solid fa-star"></i> Reviews</a>
+      <a th:href="@{/admin/reports}" class="active"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 style="font-size:2rem; font-weight:800;"><i class="fa-solid fa-chart-line" style="color:var(--color-primary);"></i> Analytics &amp; Reports</h1>
+        <p style="color:var(--color-slate-500); margin-top:0.25rem;">Real-time store performance, revenue, and order breakdowns.</p>
+      </div>
+      <div style="background:white; border-radius:var(--radius-lg); padding:0.6rem 1.25rem; border:1px solid var(--color-slate-200); font-size:0.875rem; color:var(--color-slate-500);">
+        <i class="fa-solid fa-clock"></i> Live Data
+      </div>
+    </div>
+
+    <!-- Revenue Highlight Banner -->
+    <div class="revenue-highlight">
+      <div>
+        <div style="font-size:0.9rem; opacity:0.8; font-weight:600; margin-bottom:0.75rem;"><i class="fa-solid fa-chart-line"></i> Total Revenue (All Time)</div>
+        <div style="font-size:3.5rem; font-weight:800; line-height:1;" th:text="'₹' + ${#numbers.formatDecimal(report['totalRevenue'], 1, 2)}">₹0.00</div>
+        <div style="margin-top:1rem; opacity:0.75; font-size:0.9rem;">From non-cancelled orders only</div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div style="background:rgba(255,255,255,0.15); border-radius:var(--radius-xl); padding:1rem; text-align:center;">
+          <div style="font-size:0.75rem; opacity:0.8; font-weight:700; text-transform:uppercase;">Total Orders</div>
+          <div style="font-size:2rem; font-weight:800;" th:text="${report['totalOrders']}">0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.15); border-radius:var(--radius-xl); padding:1rem; text-align:center;">
+          <div style="font-size:0.75rem; opacity:0.8; font-weight:700; text-transform:uppercase;">Total Users</div>
+          <div style="font-size:2rem; font-weight:800;" th:text="${report['totalUsers']}">0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.15); border-radius:var(--radius-xl); padding:1rem; text-align:center;">
+          <div style="font-size:0.75rem; opacity:0.8; font-weight:700; text-transform:uppercase;">Products</div>
+          <div style="font-size:2rem; font-weight:800;" th:text="${report['totalProducts']}">0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.15); border-radius:var(--radius-xl); padding:1rem; text-align:center;">
+          <div style="font-size:0.75rem; opacity:0.8; font-weight:700; text-transform:uppercase;">Featured</div>
+          <div style="font-size:2rem; font-weight:800;" th:text="${report['featuredCount']}">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Placed</div>
+          <div class="kpi-value" style="color:#d97706;" th:text="${report['placedCount']}">0</div>
+        </div>
+        <div class="kpi-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-clock"></i></div>
+      </div>
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Processing</div>
+          <div class="kpi-value" style="color:#0284c7;" th:text="${report['processingCount']}">0</div>
+        </div>
+        <div class="kpi-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-gear"></i></div>
+      </div>
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Shipped</div>
+          <div class="kpi-value" style="color:#4338ca;" th:text="${report['shippedCount']}">0</div>
+        </div>
+        <div class="kpi-icon" style="background:#e0e7ff; color:#4338ca;"><i class="fa-solid fa-truck"></i></div>
+      </div>
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Delivered</div>
+          <div class="kpi-value" style="color:#059669;" th:text="${report['deliveredCount']}">0</div>
+        </div>
+        <div class="kpi-icon" style="background:#d1fae5; color:#059669;"><i class="fa-solid fa-circle-check"></i></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <!-- Donut Chart: Order Status -->
+      <div class="chart-card">
+        <h3><i class="fa-solid fa-chart-pie" style="color:var(--color-primary);"></i> Order Status Breakdown</h3>
+        <div style="position:relative; height:280px; display:flex; justify-content:center;">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Bar Chart: Order Status Counts -->
+      <div class="chart-card">
+        <h3><i class="fa-solid fa-chart-bar" style="color:var(--color-accent);"></i> Order Funnel</h3>
+        <div style="position:relative; height:280px;">
+          <canvas id="funnelChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Status Progress Bars -->
+    <div class="chart-card" style="margin-bottom:2.5rem;">
+      <h3><i class="fa-solid fa-bars-progress" style="color:var(--color-secondary);"></i> Order Status Distribution</h3>
+      <div th:with="total=${report['totalOrders']}">
+
+        <div class="progress-bar-wrap" th:if="${total > 0}">
+          <div class="progress-label">
+            <span>Placed</span>
+            <span th:text="${report['placedCount']} + ' orders'">0 orders</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill" style="background:#d97706;"
+                 th:style="'background:#d97706; width:' + ${(report['placedCount'] * 100 / total)} + '%'"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-wrap" th:if="${total > 0}">
+          <div class="progress-label">
+            <span>Processing</span>
+            <span th:text="${report['processingCount']} + ' orders'">0 orders</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill"
+                 th:style="'background:#0284c7; width:' + ${(report['processingCount'] * 100 / total)} + '%'"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-wrap" th:if="${total > 0}">
+          <div class="progress-label">
+            <span>Shipped</span>
+            <span th:text="${report['shippedCount']} + ' orders'">0 orders</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill"
+                 th:style="'background:#4338ca; width:' + ${(report['shippedCount'] * 100 / total)} + '%'"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-wrap" th:if="${total > 0}">
+          <div class="progress-label">
+            <span>Delivered</span>
+            <span th:text="${report['deliveredCount']} + ' orders'">0 orders</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill"
+                 th:style="'background:#059669; width:' + ${(report['deliveredCount'] * 100 / total)} + '%'"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-wrap" th:if="${total > 0}">
+          <div class="progress-label">
+            <span>Cancelled</span>
+            <span th:text="${report['cancelledCount']} + ' orders'">0 orders</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill"
+                 th:style="'background:#dc2626; width:' + ${(report['cancelledCount'] * 100 / total)} + '%'"></div>
+          </div>
+        </div>
+
+        <div th:if="${total == 0}" style="text-align:center; padding:2rem; color:var(--color-slate-400);">
+          No order data available yet.
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="recent-orders-table">
+      <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-slate-200); display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="font-size:1.25rem; font-weight:700; margin:0;">Recent Orders</h2>
+        <a th:href="@{/admin/orders}" class="btn btn-sm btn-outline">View All <i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="order : ${recentOrders}">
+            <td style="font-weight:700; font-family:monospace; color:var(--color-primary);" th:text="${order.orderNumber}">KNS-101</td>
+            <td style="font-weight:600;" th:text="${order.user.fullName}">Customer</td>
+            <td style="font-size:0.875rem; color:var(--color-slate-500);" th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'dd MMM yyyy') : '—'}">01 Jan</td>
+            <td style="font-weight:700;" th:text="'₹' + ${#numbers.formatDecimal(order.finalAmount, 1, 2)}">₹0.00</td>
+            <td>
+              <span class="status-pill" th:classappend="'status-' + ${#strings.toLowerCase(order.orderStatus)}" th:text="${order.orderStatus}">PLACED</span>
+            </td>
+          </tr>
+          <tr th:if="${recentOrders.isEmpty()}">
+            <td colspan="5" style="text-align:center; padding:3rem; color:var(--color-slate-400);">No orders yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+  <script th:inline="javascript">
+    const placed     = /*[[${report['placedCount']}]]*/     0;
+    const processing = /*[[${report['processingCount']}]]*/ 0;
+    const shipped    = /*[[${report['shippedCount']}]]*/    0;
+    const delivered  = /*[[${report['deliveredCount']}]]*/  0;
+    const cancelled  = /*[[${report['cancelledCount']}]]*/  0;
+
+    // Donut Chart
+    new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        datasets: [{
+          data: [placed, processing, shipped, delivered, cancelled],
+          backgroundColor: ['#d97706', '#0284c7', '#4338ca', '#059669', '#dc2626'],
+          borderWidth: 3,
+          borderColor: '#ffffff',
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        cutout: '68%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { size: 12, weight: '600' }, padding: 14 }
+          }
+        }
+      }
+    });
+
+    // Bar Chart
+    new Chart(document.getElementById('funnelChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        datasets: [{
+          label: 'Orders',
+          data: [placed, processing, shipped, delivered, cancelled],
+          backgroundColor: ['#fef3c7', '#e0f2fe', '#e0e7ff', '#d1fae5', '#fee2e2'],
+          borderColor:     ['#d97706',  '#0284c7',  '#4338ca',  '#059669',  '#dc2626'],
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, font: { size: 12 } },
+            grid: { color: '#f1f5f9' }
+          },
+          x: {
+            ticks: { font: { size: 12, weight: '600' } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

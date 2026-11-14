@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Order - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+    <!-- Step Indicator -->
+    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 3rem;">
+      <div style="font-weight: 600; color: var(--color-slate-400); padding-bottom: 0.5rem;">
+        1. Shipping Address
+      </div>
+      <div style="font-weight: 800; color: var(--color-primary); border-bottom: 3px solid var(--color-primary); padding-bottom: 0.5rem;">
+        2. Confirm & Rewards
+      </div>
+      <div style="font-weight: 600; color: var(--color-slate-400); padding-bottom: 0.5rem;">
+        3. Order Success
+      </div>
+    </div>
+
+    <form th:action="@{/checkout/place-order}" method="post" style="display: grid; grid-template-columns: 1fr 380px; gap: 3rem; align-items: start;">
+      <input type="hidden" name="shippingAddress" th:value="${shippingAddress}">
+      <input type="hidden" name="paymentMethod" th:value="${paymentMethod}">
+
+      <!-- Confirmation Details -->
+      <div style="background-color: white; border-radius: var(--radius-2xl); padding: 2.5rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm);">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;"><i class="fa-solid fa-clipboard-check" style="color: var(--color-primary);"></i> Order Review & Items</h2>
+
+        <!-- Address summary -->
+        <div style="background-color: var(--color-slate-50); border-radius: var(--radius-xl); padding: 1.25rem; margin-bottom: 2rem;">
+          <h4 style="font-weight: 700; margin-bottom: 0.25rem;">Deliver To:</h4>
+          <p style="color: var(--color-slate-700);" th:text="${shippingAddress}">Shipping Address</p>
+        </div>
+
+        <!-- Reward Points Redemption Box -->
+        <div style="background-color: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="font-weight: 700; color: #b45309;"><i class="fa-solid fa-coins"></i> Redeem Reward Points</div>
+            <div style="font-weight: 700; font-size: 0.9rem;" th:text="${availablePoints} + ' points available'">100 pts</div>
+          </div>
+          <p style="font-size: 0.85rem; color: #78350f; margin-bottom: 1rem;">100 Reward Points = ₹500 Instant Discount</p>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="number" name="pointsToRedeem" id="pointsInput" value="0" min="0" th:max="${availablePoints}" step="100" class="form-input" placeholder="Points to use" style="flex: 1;">
+          </div>
+        </div>
+
+        <!-- Itemized List -->
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="item : ${cartItems}">
+              <td>
+                <div class="cart-item-info">
+                  <img th:src="${item.product.imageUrl}" class="cart-item-img">
+                  <span style="font-weight: 700;" th:text="${item.product.name}">Product</span>
+                </div>
+              </td>
+              <td th:text="${item.quantity}">1</td>
+              <td th:text="'₹' + ${#numbers.formatDecimal(item.product.effectivePrice, 1, 2)}">₹9,999</td>
+              <td style="font-weight: 700;" th:text="'₹' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">₹9,999</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Final Amount Breakdown -->
+      <div class="summary-card">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem;">Final Payment Summary</h3>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span th:text="'₹' + ${#numbers.formatDecimal(subtotal, 1, 2)}">₹0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Payment Method</span>
+          <span style="font-weight: 600;" th:text="${paymentMethod}">Credit Card</span>
+        </div>
+
+        <div class="summary-row total">
+          <span>Final Amount</span>
+          <span th:text="'₹' + ${#numbers.formatDecimal(subtotal, 1, 2)}">₹0.00</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+            <i class="fa-solid fa-lock"></i> Confirm & Place Order
+          </button>
+          <a th:href="@{/cart}" class="btn btn-outline btn-sm" style="text-align: center;">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

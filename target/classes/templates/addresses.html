@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Addresses - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 3rem; padding-bottom: 5rem; max-width: 900px;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 2rem;">Saved Addresses</h1>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start;">
+      <!-- Add New Address Card -->
+      <div style="background-color: white; border-radius: var(--radius-2xl); padding: 2rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm);">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;"><i class="fa-solid fa-plus" style="color: var(--color-primary);"></i> Add New Address</h3>
+        
+        <form th:action="@{/addresses/save}" method="post">
+          <div class="form-group">
+            <label class="form-label">Full Street Address *</label>
+            <input type="text" name="fullAddress" required placeholder="123 Innovation Way, Suite 400" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">City *</label>
+            <input type="text" name="city" required placeholder="San Francisco" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">State / Region</label>
+            <input type="text" name="state" placeholder="CA" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pincode / ZIP Code *</label>
+            <input type="text" name="pincode" required placeholder="94107" class="form-input">
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="isDefault" value="true" id="isDefault">
+            <label for="isDefault" style="font-weight: 600; cursor: pointer; font-size: 0.9rem;">Set as default shipping address</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">Save Address</button>
+        </form>
+      </div>
+
+      <!-- Address List -->
+      <div>
+        <div th:if="${addresses.isEmpty()}" style="background-color: white; border-radius: var(--radius-xl); padding: 2.5rem; text-align: center; border: 1px solid var(--color-slate-200);">
+          <p style="color: var(--color-slate-500);">No saved addresses found. Add your first address on the left.</p>
+        </div>
+
+        <div th:unless="${addresses.isEmpty()}" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div th:each="addr : ${addresses}" style="background-color: white; border-radius: var(--radius-xl); padding: 1.5rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm); position: relative;">
+            <span th:if="${addr.isDefault}" style="position: absolute; top: 1rem; right: 1rem; background-color: #d1fae5; color: #059669; font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-full);">DEFAULT</span>
+            
+            <p style="font-size: 0.95rem; line-height: 1.6; color: var(--color-slate-700);">
+              <strong th:text="${addr.fullAddress}">Street Address</strong><br>
+              <span th:text="${addr.city} + ', ' + ${addr.state != null ? addr.state + ' ' : ''} + ${addr.pincode}">City, State Pincode</span>
+            </p>
+
+            <div style="margin-top: 1rem;">
+              <a th:href="@{/addresses/delete/{id}(id=${addr.addressId})}" style="color: var(--color-danger); font-size: 0.85rem; font-weight: 600;">
+                <i class="fa-solid fa-trash"></i> Delete Address
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

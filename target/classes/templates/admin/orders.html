@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Management - Knapsack Admin</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .admin-nav { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+    .admin-nav a { padding:0.5rem 1rem; border-radius:var(--radius-md); font-weight:600; font-size:0.875rem; color:var(--color-slate-600); background:var(--color-slate-100); transition:all var(--transition-fast); }
+    .admin-nav a:hover, .admin-nav a.active { background:var(--color-primary); color:white; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; }
+    .filter-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .filter-tab { padding:0.4rem 1rem; border-radius:var(--radius-full); font-size:0.85rem; font-weight:600; cursor:pointer; border:2px solid transparent; transition:all 0.15s; }
+    .filter-tab.active, .filter-tab:hover { border-color:var(--color-primary); color:var(--color-primary); }
+    .payment-badge { display:inline-flex; align-items:center; gap:0.3rem; padding:0.2rem 0.6rem; border-radius:var(--radius-md); font-size:0.75rem; font-weight:600; background:var(--color-slate-100); color:var(--color-slate-600); }
+    select.status-select { padding:0.4rem 0.5rem; border:1px solid var(--color-slate-300); border-radius:var(--radius-md); font-size:0.85rem; font-family:inherit; cursor:pointer; }
+    select.status-select:focus { outline:none; border-color:var(--color-primary); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+    <!-- Admin Navigation -->
+    <nav class="admin-nav">
+      <a th:href="@{/admin}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a th:href="@{/admin/products}"><i class="fa-solid fa-box"></i> Products</a>
+      <a th:href="@{/admin/categories}"><i class="fa-solid fa-tags"></i> Categories</a>
+      <a th:href="@{/admin/orders}" class="active"><i class="fa-solid fa-boxes-packing"></i> Orders</a>
+      <a th:href="@{/admin/users}"><i class="fa-solid fa-users"></i> Users</a>
+      <a th:href="@{/admin/reviews}"><i class="fa-solid fa-star"></i> Reviews</a>
+      <a th:href="@{/admin/reports}"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 style="font-size:2rem; font-weight:800;"><i class="fa-solid fa-boxes-packing" style="color:var(--color-primary);"></i> Order Management</h1>
+        <p style="color:var(--color-slate-500); margin-top:0.25rem;">Track, fulfill, and manage all customer orders.</p>
+      </div>
+      <a th:href="@{/admin/reports}" class="btn btn-outline">
+        <i class="fa-solid fa-chart-bar"></i> View Reports
+      </a>
+    </div>
+
+    <!-- Order Status Summary -->
+    <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:1rem; margin-bottom:2rem;">
+      <div style="background:white; border-radius:var(--radius-xl); padding:1.1rem; border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); text-align:center;">
+        <div style="font-size:0.75rem; font-weight:700; color:var(--color-slate-500); text-transform:uppercase; margin-bottom:0.4rem;">Total</div>
+        <div style="font-size:1.6rem; font-weight:800;" th:text="${orders.size()}">0</div>
+      </div>
+      <div style="background:#fef3c7; border-radius:var(--radius-xl); padding:1.1rem; border:1px solid #fde68a; text-align:center;">
+        <div style="font-size:0.75rem; font-weight:700; color:#d97706; text-transform:uppercase; margin-bottom:0.4rem;">Placed</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#d97706;" th:text="${orders.stream().filter(o -> 'PLACED'.equals(o.orderStatus)).count()}">0</div>
+      </div>
+      <div style="background:#e0f2fe; border-radius:var(--radius-xl); padding:1.1rem; border:1px solid #bae6fd; text-align:center;">
+        <div style="font-size:0.75rem; font-weight:700; color:#0284c7; text-transform:uppercase; margin-bottom:0.4rem;">Processing</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#0284c7;" th:text="${orders.stream().filter(o -> 'PROCESSING'.equals(o.orderStatus)).count()}">0</div>
+      </div>
+      <div style="background:#e0e7ff; border-radius:var(--radius-xl); padding:1.1rem; border:1px solid #c7d2fe; text-align:center;">
+        <div style="font-size:0.75rem; font-weight:700; color:#4338ca; text-transform:uppercase; margin-bottom:0.4rem;">Shipped</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#4338ca;" th:text="${orders.stream().filter(o -> 'SHIPPED'.equals(o.orderStatus)).count()}">0</div>
+      </div>
+      <div style="background:#d1fae5; border-radius:var(--radius-xl); padding:1.1rem; border:1px solid #a7f3d0; text-align:center;">
+        <div style="font-size:0.75rem; font-weight:700; color:#059669; text-transform:uppercase; margin-bottom:0.4rem;">Delivered</div>
+        <div style="font-size:1.6rem; font-weight:800; color:#059669;" th:text="${orders.stream().filter(o -> 'DELIVERED'.equals(o.orderStatus)).count()}">0</div>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div style="background:white; border-radius:var(--radius-2xl); border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); overflow:hidden;">
+      <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-slate-200); display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="font-size:1.25rem; font-weight:700; margin:0;">All Orders</h2>
+        <input type="text" placeholder="&#128269; Search by order # or customer..." style="padding:0.5rem 1rem; border:1px solid var(--color-slate-300); border-radius:var(--radius-lg); font-size:0.875rem; width:290px;" oninput="filterOrders(this.value)">
+      </div>
+      <table class="cart-table" id="ordersTable">
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Update Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="order : ${orders}" class="order-row">
+            <td>
+              <div style="font-weight:700; font-family:monospace; color:var(--color-primary);" th:text="${order.orderNumber}">KNS-101</div>
+              <div style="font-size:0.8rem; color:var(--color-slate-400);">ID: <span th:text="${order.orderId}">1</span></div>
+            </td>
+            <td>
+              <div style="font-weight:600;" th:text="${order.user.fullName}">Customer Name</div>
+              <div style="font-size:0.8rem; color:var(--color-slate-400);" th:text="${order.user.email}">email@example.com</div>
+            </td>
+            <td style="font-size:0.875rem; color:var(--color-slate-500);" th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'dd MMM yyyy') : '—'}">01 Jan 2026</td>
+            <td style="text-align:center; font-weight:700;" th:text="${order.orderItems.size()}">0</td>
+            <td>
+              <div style="font-weight:800; color:var(--color-slate-900);" th:text="'₹' + ${#numbers.formatDecimal(order.finalAmount, 1, 2)}">₹0.00</div>
+              <div th:if="${order.discountAmount > 0}" style="font-size:0.8rem; color:#059669;" th:text="'Saved ₹' + ${#numbers.formatDecimal(order.discountAmount, 1, 2)}">Saved ₹0.00</div>
+            </td>
+            <td>
+              <span class="payment-badge"><i class="fa-solid fa-credit-card"></i> <span th:text="${order.paymentMethod != null ? order.paymentMethod : 'CARD'}">CARD</span></span>
+            </td>
+            <td>
+              <span class="status-pill"
+                    th:classappend="'status-' + ${#strings.toLowerCase(order.orderStatus)}"
+                    th:text="${order.orderStatus}">PLACED</span>
+            </td>
+            <td>
+              <form th:action="@{/admin/orders/status}" method="post" style="display:flex; gap:0.4rem; align-items:center;">
+                <input type="hidden" name="orderId" th:value="${order.orderId}">
+                <select name="status" class="status-select">
+                  <option value="PLACED"      th:selected="${order.orderStatus == 'PLACED'}">Placed</option>
+                  <option value="PROCESSING"  th:selected="${order.orderStatus == 'PROCESSING'}">Processing</option>
+                  <option value="SHIPPED"     th:selected="${order.orderStatus == 'SHIPPED'}">Shipped</option>
+                  <option value="DELIVERED"   th:selected="${order.orderStatus == 'DELIVERED'}">Delivered</option>
+                  <option value="CANCELLED"   th:selected="${order.orderStatus == 'CANCELLED'}">Cancelled</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary" title="Update Status">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          <tr th:if="${orders.isEmpty()}">
+            <td colspan="8" style="text-align:center; padding:4rem; color:var(--color-slate-400);">
+              <i class="fa-solid fa-boxes-packing" style="font-size:2.5rem; margin-bottom:1rem; display:block;"></i>
+              No orders placed yet.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+  <script>
+    function filterOrders(query) {
+      document.querySelectorAll('.order-row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

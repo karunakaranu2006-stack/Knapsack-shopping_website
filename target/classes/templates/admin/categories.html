@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category Management - Knapsack Admin</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .admin-nav { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+    .admin-nav a { padding:0.5rem 1rem; border-radius:var(--radius-md); font-weight:600; font-size:0.875rem; color:var(--color-slate-600); background:var(--color-slate-100); transition:all var(--transition-fast); }
+    .admin-nav a:hover, .admin-nav a.active { background:var(--color-primary); color:white; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; }
+    .cat-icon-preview { width:3rem; height:3rem; border-radius:var(--radius-lg); background:linear-gradient(135deg, var(--color-primary-light), #e0e7ff); display:flex; align-items:center; justify-content:center; color:var(--color-primary); font-size:1.25rem; }
+    .cat-img-preview { width:4rem; height:3rem; border-radius:var(--radius-md); object-fit:cover; border:1px solid var(--color-slate-200); }
+    .form-section { background:white; border-radius:var(--radius-2xl); border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); padding:2rem; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+    <!-- Admin Navigation -->
+    <nav class="admin-nav">
+      <a th:href="@{/admin}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a th:href="@{/admin/products}"><i class="fa-solid fa-box"></i> Products</a>
+      <a th:href="@{/admin/categories}" class="active"><i class="fa-solid fa-tags"></i> Categories</a>
+      <a th:href="@{/admin/orders}"><i class="fa-solid fa-boxes-packing"></i> Orders</a>
+      <a th:href="@{/admin/users}"><i class="fa-solid fa-users"></i> Users</a>
+      <a th:href="@{/admin/reviews}"><i class="fa-solid fa-star"></i> Reviews</a>
+      <a th:href="@{/admin/reports}"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 style="font-size:2rem; font-weight:800;"><i class="fa-solid fa-tags" style="color:var(--color-primary);"></i> Category Management</h1>
+        <p style="color:var(--color-slate-500); margin-top:0.25rem;">Organise your product catalog with categories.</p>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1.6fr; gap:2rem; align-items:start;">
+
+      <!-- Add / Edit Category Form -->
+      <div class="form-section">
+        <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1.5rem; padding-bottom:0.75rem; border-bottom:1px solid var(--color-slate-200);">
+          <i class="fa-solid fa-plus-circle" style="color:var(--color-accent);"></i> Add New Category
+        </h2>
+        <form th:action="@{/admin/categories/save}" th:object="${category}" method="post">
+          <input type="hidden" th:field="*{categoryId}">
+
+          <div class="form-group">
+            <label class="form-label">Category Name *</label>
+            <input type="text" th:field="*{name}" required placeholder="e.g. Backpacks &amp; Gear" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea th:field="*{description}" rows="3" class="form-input" placeholder="Short description of this category..."></textarea>
+          </div>
+
+          <div class="two-col">
+            <div class="form-group">
+              <label class="form-label">Icon Class (FontAwesome)</label>
+              <input type="text" th:field="*{icon}" placeholder="fa-solid fa-bag-shopping" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Image URL</label>
+              <input type="url" th:field="*{imageUrl}" placeholder="https://images.unsplash.com/..." class="form-input">
+            </div>
+          </div>
+
+          <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">
+              <i class="fa-solid fa-floppy-disk"></i> Save Category
+            </button>
+            <a th:href="@{/admin/categories}" class="btn btn-outline">Cancel</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Categories List -->
+      <div>
+        <div style="background:white; border-radius:var(--radius-2xl); border:1px solid var(--color-slate-200); box-shadow:var(--shadow-sm); overflow:hidden;">
+          <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--color-slate-200); display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="font-size:1.25rem; font-weight:700; margin:0;">Existing Categories</h2>
+            <span style="background:var(--color-primary-light); color:var(--color-primary); padding:0.25rem 0.75rem; border-radius:var(--radius-full); font-size:0.8rem; font-weight:700;" th:text="${categories.size()} + ' total'">0 total</span>
+          </div>
+
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Image</th>
+                <th style="text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="cat : ${categories}">
+                <td>
+                  <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div class="cat-icon-preview">
+                      <i th:if="${cat.icon != null and !#strings.isEmpty(cat.icon)}" th:class="${cat.icon}"></i>
+                      <i th:unless="${cat.icon != null and !#strings.isEmpty(cat.icon)}" class="fa-solid fa-tags"></i>
+                    </div>
+                    <div>
+                      <div style="font-weight:700;" th:text="${cat.name}">Category Name</div>
+                      <div style="font-size:0.8rem; color:var(--color-slate-400);">ID: <span th:text="${cat.categoryId}">1</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td style="max-width:180px;">
+                  <span style="color:var(--color-slate-500); font-size:0.875rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;" th:text="${cat.description != null ? cat.description : '—'}">Description</span>
+                </td>
+                <td>
+                  <img th:if="${cat.imageUrl != null and !#strings.isEmpty(cat.imageUrl)}" th:src="${cat.imageUrl}" class="cat-img-preview" alt="Category Image">
+                  <span th:unless="${cat.imageUrl != null and !#strings.isEmpty(cat.imageUrl)}" style="color:var(--color-slate-400); font-size:0.8rem;">No image</span>
+                </td>
+                <td style="text-align:center;">
+                  <div style="display:flex; gap:0.5rem; justify-content:center;">
+                    <a th:href="@{/products(categoryId=${cat.categoryId})}" class="btn btn-sm btn-secondary" title="View Products" target="_blank">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <!-- Edit would require a separate route; for now use a form or a GET edit route if added later -->
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${categories.isEmpty()}">
+                <td colspan="4" style="text-align:center; padding:3rem; color:var(--color-slate-400);">
+                  <i class="fa-solid fa-tags" style="font-size:2rem; margin-bottom:0.75rem; display:block;"></i>
+                  No categories yet. Add one on the left!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

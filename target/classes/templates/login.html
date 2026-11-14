@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
+    <div class="form-card" style="width: 100%;">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 3.5rem; height: 3.5rem; font-size: 1.75rem;">
+          <i class="fa-solid fa-bag-shopping"></i>
+        </div>
+        <h1 style="font-size: 1.75rem; font-weight: 800;">Welcome Back</h1>
+        <p style="color: var(--color-slate-500); font-size: 0.9rem; margin-top: 0.25rem;">Sign in to your Knapsack account</p>
+      </div>
+
+      <div th:if="${errorMessage}" class="alert-danger" th:text="${errorMessage}">Error message</div>
+
+      <!-- Demo Accounts Quick Info -->
+      <div style="background-color: var(--color-primary-light); border-radius: var(--radius-lg); padding: 0.75rem 1rem; font-size: 0.825rem; color: var(--color-primary); margin-bottom: 1.5rem;">
+        <strong>Demo Accounts:</strong><br>
+        Customer: <code>john@example.com</code> or <code>user@knapsack.com</code> / <code>user123</code><br>
+        Admin: <code>admin@knapsack.com</code> / <code>admin123</code>
+      </div>
+
+      <form th:action="@{/login}" method="post">
+        <input type="hidden" name="redirect" th:value="${redirect}">
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" th:value="${email}" required placeholder="you@example.com" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="form-label">Password</label>
+            <a th:href="@{/forgot-password}" style="font-size: 0.8rem; color: var(--color-primary); font-weight: 600;">Forgot Password?</a>
+          </div>
+          <input type="password" name="password" required placeholder="••••••••" class="form-input">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
+          Sign In
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--color-slate-500);">
+        Don't have an account? <a th:href="@{/register}" style="color: var(--color-primary); font-weight: 700;">Create Account</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

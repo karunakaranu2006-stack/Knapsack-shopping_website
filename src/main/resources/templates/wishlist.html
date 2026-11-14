@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wishlist - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 2rem;">My Saved Wishlist</h1>
+
+    <div th:if="${wishlistItems.isEmpty()}" style="background-color: white; border-radius: var(--radius-2xl); padding: 4rem; text-align: center; border: 1px solid var(--color-slate-200);">
+      <i class="fa-solid fa-heart-crack" style="font-size: 3.5rem; color: #ec4899; margin-bottom: 1.5rem;"></i>
+      <h2>Your wishlist is currently empty</h2>
+      <p style="color: var(--color-slate-500); margin-bottom: 2rem;">Save items you love to keep track of secret drops and sales.</p>
+      <a th:href="@{/products}" class="btn btn-lg btn-primary">Browse Shop</a>
+    </div>
+
+    <div th:unless="${wishlistItems.isEmpty()}" class="product-grid">
+      <div th:each="item : ${wishlistItems}" class="product-card">
+        <div class="product-thumb">
+          <img th:src="${item.product.imageUrl}" th:alt="${item.product.name}">
+        </div>
+        <div class="product-details">
+          <div class="product-category" th:text="${item.product.category != null ? item.product.category.name : 'GEAR'}">Category</div>
+          <a th:href="@{/products/{id}(id=${item.product.productId})}">
+            <h3 class="product-title" th:text="${item.product.name}">Product Title</h3>
+          </a>
+          <div class="product-bottom" style="flex-direction: column; gap: 0.75rem; align-items: stretch; margin-top: 1rem;">
+            <div style="font-size: 1.25rem; font-weight: 800;" th:text="'₹' + ${#numbers.formatDecimal(item.product.effectivePrice, 1, 2)}">₹9,999</div>
+            <div style="display: flex; gap: 0.5rem;">
+              <a th:href="@{/wishlist/move-to-cart/{id}(id=${item.product.productId})}" class="btn btn-sm btn-primary" style="flex: 1;">
+                <i class="fa-solid fa-cart-plus"></i> Move to Cart
+              </a>
+              <a th:href="@{/wishlist/remove/{id}(id=${item.product.productId})}" class="btn btn-sm btn-outline" style="color: var(--color-danger); border-color: #fecaca;" title="Remove">
+                <i class="fa-solid fa-trash-can"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

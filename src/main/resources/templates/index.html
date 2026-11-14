@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knapsack - Premium EDC & Travel Gear</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="hero-tag">
+          <i class="fa-solid fa-bolt" style="color: #f472b6;"></i> New Collection 2026
+        </div>
+        <h1 class="hero-title">Elevate Your Everyday <span>Carry & Travel</span></h1>
+        <p class="hero-desc">
+          Engineered for modern urban explorers. High-performance tactical backpacks, smart travel gadgets, and weather-proof apparel crafted for durability.
+        </p>
+        <div class="hero-actions">
+          <a th:href="@{/products}" class="btn btn-lg btn-primary">
+            Explore Shop <i class="fa-solid fa-arrow-right"></i>
+          </a>
+          <a th:href="@{/products(categoryId=1)}" class="btn btn-lg btn-outline" style="color: white; border-color: rgba(255,255,255,0.3);">
+            Backpacks
+          </a>
+        </div>
+      </div>
+      <div class="hero-image-wrapper">
+        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80" alt="Knapsack Backpack" class="hero-image">
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Bar -->
+  <section class="features-bar">
+    <div class="container features-grid">
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fa-solid fa-truck-fast"></i></div>
+        <div>
+          <div class="feature-title">Free Express Shipping</div>
+          <div class="feature-desc">On orders over ₹1,000 nationwide</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <div class="feature-title">Lifetime Guarantee</div>
+          <div class="feature-desc">Crafted with ballistic nylon</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fa-solid fa-rotate-left"></i></div>
+        <div>
+          <div class="feature-title">30-Day Free Returns</div>
+          <div class="feature-desc">Hassle-free return policy</div>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fa-solid fa-headset"></i></div>
+        <div>
+          <div class="feature-title">24/7 Dedicated Support</div>
+          <div class="feature-desc">Expert customer service team</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Explore Categories</h2>
+          <p class="section-subtitle">Gear tailored specifically for your lifestyle and travel needs</p>
+        </div>
+        <a th:href="@{/products}" class="btn btn-outline btn-sm">View All <i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+
+      <div class="category-grid">
+        <a th:each="cat : ${categories}" th:href="@{/products(categoryId=${cat.categoryId})}" class="category-card">
+          <img th:src="${cat.imageUrl}" th:alt="${cat.name}" class="category-img">
+          <div class="category-overlay">
+            <div class="category-name" th:text="${cat.name}">Category Name</div>
+            <div class="category-desc" th:text="${cat.description}">Category description goes here...</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section class="section" style="background-color: var(--color-slate-100);">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Featured Gear & Gadgets</h2>
+          <p class="section-subtitle">Hand-picked top rated essentials recommended by our community</p>
+        </div>
+        <a th:href="@{/products}" class="btn btn-outline btn-sm">See Full Catalog <i class="fa-solid fa-chevron-right"></i></a>
+      </div>
+
+      <div class="product-grid">
+        <div th:each="prod : ${featuredProducts}" class="product-card">
+          <div class="product-thumb">
+            <span th:if="${prod.isFeatured}" class="badge-featured">FEATURED</span>
+            <span th:if="${prod.discountPercentage > 0}" class="badge-discount" th:text="'-' + ${prod.discountPercentage} + '%'">-20%</span>
+            <img th:src="${prod.imageUrl}" th:alt="${prod.name}">
+          </div>
+          <div class="product-details">
+            <div class="product-category" th:text="${prod.category != null ? prod.category.name : 'GEAR'}">Category</div>
+            <a th:href="@{/products/{id}(id=${prod.productId})}">
+              <h3 class="product-title" th:text="${prod.name}">Product Title</h3>
+            </a>
+            <div class="rating-stars">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star-half-stroke"></i>
+              <span class="rating-count" th:text="'(' + ${prod.reviewCount} + ')'">(12)</span>
+            </div>
+            <div class="product-bottom">
+              <div class="price-box">
+                <span class="price-current" th:text="'₹' + ${#numbers.formatDecimal(prod.effectivePrice, 1, 2)}">₹9,999</span>
+                <span th:if="${prod.discountPrice != null and prod.discountPrice < prod.price}" class="price-old" th:text="'₹' + ${#numbers.formatDecimal(prod.price, 1, 2)}">₹12,999</span>
+              </div>
+              <form th:action="@{/cart/add}" method="post">
+                <input type="hidden" name="productId" th:value="${prod.productId}">
+                <button type="submit" class="btn btn-sm btn-primary" title="Add to Cart">
+                  <i class="fa-solid fa-cart-plus"></i> Add
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background-color: var(--color-slate-100); min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 3rem; padding-bottom: 5rem; flex: 1;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--color-slate-900);">My Account Profile</h1>
+      <a th:href="@{/change-password}" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-key"></i> Change Password
+      </a>
+    </div>
+
+    <div th:if="${param.success != null and param.success[0] == 'profile_updated'}" class="alert-success" style="margin-bottom: 1.5rem;">
+      Profile information updated successfully!
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
+      
+      <!-- Profile Overview & Edit -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- User Info Card -->
+        <div style="background-color: white; border-radius: var(--radius-2xl); padding: 2rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm); text-align: center;">
+          <div style="width: 5rem; height: 5rem; background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); color: white; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; margin: 0 auto 1rem auto; text-transform: uppercase;">
+            <span th:text="${#strings.substring(currentUser.fullName, 0, 1)}">U</span>
+          </div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--color-slate-900);" th:text="${currentUser.fullName}">User Full Name</h2>
+          <p style="color: var(--color-slate-500); font-size: 0.9rem; margin-top: 0.25rem;" th:text="${currentUser.email}">user@example.com</p>
+          <div style="margin-top: 0.75rem;">
+            <span class="status-pill status-delivered" style="font-weight: 700; font-size: 0.75rem;" th:text="${currentUser.role}">CUSTOMER</span>
+          </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div style="background-color: white; border-radius: var(--radius-2xl); padding: 2rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm);">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--color-slate-900);">
+            <i class="fa-solid fa-user-pen" style="color: var(--color-primary);"></i> Edit Personal Details
+          </h3>
+          <form th:action="@{/profile/update}" method="post">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" name="fullName" th:value="${currentUser.fullName}" required class="form-input">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address (Read-only)</label>
+              <input type="email" th:value="${currentUser.email}" readonly class="form-input" style="background-color: var(--color-slate-100); color: var(--color-slate-500); cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" name="phone" th:value="${currentUser.phone}" placeholder="+1-800-555-0100" class="form-input">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Save Changes</button>
+          </form>
+        </div>
+
+        <!-- Quick Links -->
+        <div style="background-color: white; border-radius: var(--radius-2xl); padding: 1.5rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm);">
+          <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-slate-900);">Account Quick Actions</h4>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <a th:href="@{/addresses}" class="btn btn-outline btn-sm" style="text-align: left; justify-content: flex-start;">
+              <i class="fa-solid fa-map-location-dot" style="color: var(--color-primary); width: 1.25rem;"></i> Manage Saved Addresses (<span th:text="${addresses.size()}">0</span>)
+            </a>
+            <a th:href="@{/orders}" class="btn btn-outline btn-sm" style="text-align: left; justify-content: flex-start;">
+              <i class="fa-solid fa-box-open" style="color: var(--color-primary); width: 1.25rem;"></i> View Order History
+            </a>
+            <a th:href="@{/wishlist}" class="btn btn-outline btn-sm" style="text-align: left; justify-content: flex-start;">
+              <i class="fa-solid fa-heart" style="color: #ec4899; width: 1.25rem;"></i> View Wishlist (<span th:text="${wishlistCount}">0</span>)
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reward Points & Activity History -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Reward Balance Banner -->
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); border-radius: var(--radius-2xl); padding: 2rem; color: white; box-shadow: var(--shadow-md); position: relative; overflow: hidden;">
+          <div style="position: absolute; right: -1rem; bottom: -1rem; font-size: 8rem; opacity: 0.15; color: white;">
+            <i class="fa-solid fa-coins"></i>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+            <div>
+              <span style="font-size: 0.85rem; text-transform: uppercase; tracking: 0.05em; opacity: 0.8; font-weight: 700;">Knapsack Rewards Balance</span>
+              <div style="font-size: 3rem; font-weight: 900; line-height: 1.1; margin-top: 0.25rem;" th:text="${rewardPoint.totalPoints}">0</div>
+              <p style="font-size: 0.9rem; opacity: 0.9; margin-top: 0.5rem;">
+                <i class="fa-solid fa-gift" style="color: #fde047;"></i> Equivalent to <strong style="color: #fde047;" th:text="'₹' + ${#numbers.formatDecimal((rewardPoint.totalPoints / 100.0) * 500.0, 1, 2)}">₹0.00</strong> checkout discount!
+              </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: var(--radius-full); font-size: 0.8rem; backdrop-filter: blur(4px);">
+              +5 Daily Login Reward Active
+            </div>
+          </div>
+        </div>
+
+        <!-- Reward History Table -->
+        <div style="background-color: white; border-radius: var(--radius-2xl); padding: 2rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm);">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--color-slate-900); display: flex; align-items: center; justify-content: space-between;">
+            <span><i class="fa-solid fa-history" style="color: var(--color-primary);"></i> Reward Points History</span>
+          </h3>
+
+          <div th:if="${rewardHistories.isEmpty()}" style="text-align: center; padding: 2rem; color: var(--color-slate-400);">
+            No reward history recorded yet. Log in daily to earn +5 points!
+          </div>
+
+          <table th:unless="${rewardHistories.isEmpty()}" class="cart-table">
+            <thead>
+              <tr>
+                <th>Transaction</th>
+                <th>Earned</th>
+                <th>Redeemed</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="history : ${rewardHistories}">
+                <td style="font-weight: 600;" th:text="${history.description}">Description</td>
+                <td>
+                  <span th:if="${history.pointsEarned > 0}" style="color: #059669; font-weight: 700;" th:text="'+' + ${history.pointsEarned}">+5</span>
+                  <span th:unless="${history.pointsEarned > 0}" style="color: var(--color-slate-400);">-</span>
+                </td>
+                <td>
+                  <span th:if="${history.pointsRedeemed > 0}" style="color: var(--color-danger); font-weight: 700;" th:text="'-' + ${history.pointsRedeemed}">-100</span>
+                  <span th:unless="${history.pointsRedeemed > 0}" style="color: var(--color-slate-400);">-</span>
+                </td>
+                <td style="font-size: 0.85rem; color: var(--color-slate-500);" th:text="${#temporals.format(history.transactionDate, 'MMM dd, yyyy HH:mm')}">Date</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

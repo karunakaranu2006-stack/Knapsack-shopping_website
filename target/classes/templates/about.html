@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 4rem; padding-bottom: 5rem; max-width: 900px;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem;">Crafted For The Modern Explorer</h1>
+      <p style="font-size: 1.25rem; color: var(--color-slate-500); max-width: 36rem; margin: 0 auto;">
+        At Knapsack, we believe high quality everyday carry gear empowers individuals to navigate cities and remote trails with confidence.
+      </p>
+    </div>
+
+    <div style="background-color: white; border-radius: var(--radius-2xl); padding: 3rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm); line-height: 1.8; color: var(--color-slate-700);">
+      <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--color-slate-900); margin-bottom: 1rem;">Our Mission</h2>
+      <p style="margin-bottom: 2rem;">
+        Founded in 2024, Knapsack set out with a clear goal: build zero-compromise gear designed for urban commuters, digital nomads, and outdoor adventurers. Every stitch, zipper, and pocket layout is meticulously tested for durability and functionality.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin: 3rem 0; text-align: center;">
+        <div style="background-color: var(--color-slate-50); padding: 1.5rem; border-radius: var(--radius-xl);">
+          <div style="font-size: 2.25rem; font-weight: 800; color: var(--color-primary);">50K+</div>
+          <div style="font-size: 0.9rem; color: var(--color-slate-500); font-weight: 600;">Happy Adventurers</div>
+        </div>
+        <div style="background-color: var(--color-slate-50); padding: 1.5rem; border-radius: var(--radius-xl);">
+          <div style="font-size: 2.25rem; font-weight: 800; color: var(--color-secondary);">100%</div>
+          <div style="font-size: 0.9rem; color: var(--color-slate-500); font-weight: 600;">Ballistic Cordura</div>
+        </div>
+        <div style="background-color: var(--color-slate-50); padding: 1.5rem; border-radius: var(--radius-xl);">
+          <div style="font-size: 2.25rem; font-weight: 800; color: var(--color-accent);">4.9 ★</div>
+          <div style="font-size: 0.9rem; color: var(--color-slate-500); font-weight: 600;">Average Rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

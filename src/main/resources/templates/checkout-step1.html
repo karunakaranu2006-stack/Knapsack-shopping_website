@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout Step 1 - Knapsack</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+    <!-- Step Indicator -->
+    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 3rem;">
+      <div style="font-weight: 800; color: var(--color-primary); border-bottom: 3px solid var(--color-primary); padding-bottom: 0.5rem;">
+        1. Shipping Address
+      </div>
+      <div style="font-weight: 600; color: var(--color-slate-400); padding-bottom: 0.5rem;">
+        2. Confirm & Rewards
+      </div>
+      <div style="font-weight: 600; color: var(--color-slate-400); padding-bottom: 0.5rem;">
+        3. Order Success
+      </div>
+    </div>
+
+    <form th:action="@{/checkout/confirm}" method="post" style="display: grid; grid-template-columns: 1fr 360px; gap: 3rem; align-items: start;">
+      <div style="background-color: white; border-radius: var(--radius-2xl); padding: 2.5rem; border: 1px solid var(--color-slate-200); box-shadow: var(--shadow-sm);">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;"><i class="fa-solid fa-truck" style="color: var(--color-primary);"></i> Choose Shipping Destination</h2>
+
+        <!-- Saved Addresses Options -->
+        <div th:unless="${addresses.isEmpty()}" style="margin-bottom: 2rem;">
+          <label class="form-label" style="margin-bottom: 1rem;">Select from Saved Addresses:</label>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <label th:each="addr, iter : ${addresses}" style="border: 1px solid var(--color-slate-300); border-radius: var(--radius-xl); padding: 1.25rem; display: flex; gap: 1rem; align-items: start; cursor: pointer; background-color: var(--color-slate-50);">
+              <input type="radio" name="addressId" th:value="${addr.addressId}" th:checked="${iter.index == 0}" style="margin-top: 0.25rem;">
+              <div>
+                <strong th:text="${addr.fullAddress}">Address</strong><br>
+                <span th:text="${addr.city} + ', ' + ${addr.state != null ? addr.state + ' ' : ''} + ${addr.pincode}">City State Zip</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">Or Enter New Address</h3>
+
+        <div class="form-group">
+          <label class="form-label">Full Street Address</label>
+          <input type="text" name="newFullAddress" placeholder="123 Innovation Way, Suite 400" class="form-input">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input type="text" name="newCity" placeholder="San Francisco" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">State</label>
+            <input type="text" name="newState" placeholder="CA" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pincode</label>
+            <input type="text" name="newPincode" placeholder="94107" class="form-input">
+          </div>
+        </div>
+
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">Payment Option</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <label style="border: 2px solid var(--color-primary); padding: 1rem; border-radius: var(--radius-xl); text-align: center; cursor: pointer; background-color: var(--color-primary-light);">
+            <input type="radio" name="paymentMethod" value="CREDIT_CARD" checked style="display: none;">
+            <i class="fa-solid fa-credit-card" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem; display: block;"></i>
+            <span style="font-weight: 700; font-size: 0.85rem;">Credit Card</span>
+          </label>
+          <label style="border: 1px solid var(--color-slate-300); padding: 1rem; border-radius: var(--radius-xl); text-align: center; cursor: pointer;">
+            <input type="radio" name="paymentMethod" value="PAYPAL" style="display: none;">
+            <i class="fa-brands fa-paypal" style="font-size: 1.5rem; color: #003087; margin-bottom: 0.5rem; display: block;"></i>
+            <span style="font-weight: 700; font-size: 0.85rem;">PayPal</span>
+          </label>
+          <label style="border: 1px solid var(--color-slate-300); padding: 1rem; border-radius: var(--radius-xl); text-align: center; cursor: pointer;">
+            <input type="radio" name="paymentMethod" value="CASH_ON_DELIVERY" style="display: none;">
+            <i class="fa-solid fa-money-bill-wave" style="font-size: 1.5rem; color: var(--color-accent); margin-bottom: 0.5rem; display: block;"></i>
+            <span style="font-weight: 700; font-size: 0.85rem;">Pay on Delivery</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Order Review Sidebar -->
+      <div class="summary-card">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem;">Subtotal Review</h3>
+        
+        <div class="summary-row">
+          <span>Items (<span th:text="${cartItems.size()}">0</span>)</span>
+          <span th:text="'₹' + ${#numbers.formatDecimal(subtotal, 1, 2)}">₹0.00</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1.5rem;">
+          Continue to Confirmation <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
